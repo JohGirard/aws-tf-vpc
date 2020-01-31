@@ -1,0 +1,38 @@
+version: 2.1
+
+commands:
+  terraform-lint:
+    steps:
+      - run:
+          name: Terraform terraform init
+          command: |
+            pushd environment/test
+            terraform fmt -check
+
+  terraform-init:
+    steps:
+      - run:
+          name: Terraform terraform init
+          command: |
+            pushd environment/test
+            terraform init \
+              -backend-config="bucket=${BUCKET_TF_STATE}" \
+              -backend-config="dynamodb_table=${DYNAMODB_TABLE_LOCK}
+
+executors:
+  terraform:
+    docker:
+      - image: hashicorp/terraform:latest
+
+jobs:
+  lint:
+    executor: terraform
+    steps:
+      - checkout
+      - terraform-lint
+
+workflows:
+  version: 2
+  working-branch:
+    jobs:
+      - lint
