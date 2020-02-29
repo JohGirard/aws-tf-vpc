@@ -110,7 +110,7 @@ jobs:
       - checkout
       - terraform-init:
           environment: <<parameters.environment>>
-      - terraform-workspace-and-plan:
+      - terraform-workspace-and-apply:
           environment: <<parameters.environment>>
           workspace_name: <<parameters.workspace_name>>
 
