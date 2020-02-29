@@ -1,23 +1,74 @@
 version: 2.1
 
+master-filter: &master-filter
+  branches:
+    only:
+      - master
+
+tag-filter: &tag-filter
+  branches:
+    ignore: /.*/
+  tags:
+    only: /^[0-9]+(\.[0-9]+)*$/
+
 commands:
   terraform-lint:
     steps:
       - run:
-          name: Terraform terraform init
+          name: Terraform lint
           command: |
-            pushd environment/test
-            terraform fmt -check
+            terraform fmt -check -diff -recursive
 
   terraform-init:
+    parameters:
+      environment:
+        type: string
     steps:
       - run:
-          name: Terraform terraform init
+          name: Terraform init
           command: |
-            pushd environment/test
             terraform init \
               -backend-config="bucket=${BUCKET_TF_STATE}" \
-              -backend-config="dynamodb_table=${DYNAMODB_TABLE_LOCK}
+              -backend-config="dynamodb_table=${DYNAMODB_TABLE_LOCK}" \
+              -backend-config="key=<<parameters.environment>>/vpc/terraform.tfstate" \
+              -backend-config="region=${BUCKET_REGION}"
+
+  terraform-workspace-and-plan:
+    parameters:
+      environment:
+        type: string
+      workspace_name:
+        type: string
+    steps:
+      - run:
+          name: Terraform workspace and plan
+          command: |
+            export AWS_REGION=<<parameters.workspace_name>>
+            export AWS_DEFAULT_REGION=<<parameters.workspace_name>>
+            terraform workspace select <<parameters.workspace_name>> || terraform workspace new <<parameters.workspace_name>>
+            terraform plan -var-file=environments/<<parameters.environment>>/<<parameters.workspace_name>>.tfvars -var-file=environments/<<parameters.environment>>/global.tfvars
+
+  terraform-workspace-and-apply:
+    parameters:
+      environment:
+        type: string
+      workspace_name:
+        type: string
+    steps:
+      - run:
+          name: Terraform workspace and plan
+          command: |
+            export AWS_REGION=<<parameters.workspace_name>>
+            export AWS_DEFAULT_REGION=<<parameters.workspace_name>>
+            terraform workspace select <<parameters.workspace_name>> || terraform workspace new <<parameters.workspace_name>>
+            terraform apply -auto-approve -var-file=environments/<<parameters.environment>>/<<parameters.workspace_name>>.tfvars -var-file=environments/<<parameters.environment>>/global.tfvars
+
+  terraform-plan:
+    steps:
+      - run:
+          name: Terraform plan
+          command: |
+            terraform plan
 
 executors:
   terraform:
@@ -27,12 +78,63 @@ executors:
 jobs:
   lint:
     executor: terraform
+    resource_class: small
     steps:
       - checkout
       - terraform-lint
+  plan:
+    executor: terraform
+    resource_class: small
+    parameters:
+      environment:
+        type: string
+      workspace_name:
+        type: string
+    steps:
+      - checkout
+      - terraform-init:
+          environment: <<parameters.environment>>
+      - terraform-workspace-and-plan:
+          environment: <<parameters.environment>>
+          workspace_name: <<parameters.workspace_name>>
+
+  apply:
+    executor: terraform
+    resource_class: small
+    parameters:
+      environment:
+        type: string
+      workspace_name:
+        type: string
+    steps:
+      - checkout
+      - terraform-init:
+          environment: <<parameters.environment>>
+      - terraform-workspace-and-plan:
+          environment: <<parameters.environment>>
+          workspace_name: <<parameters.workspace_name>>
 
 workflows:
   version: 2
   working-branch:
     jobs:
       - lint
+      - plan:
+          name: tf-plan-env-test-1
+          environment: test
+          workspace_name: eu-west-1
+          requires:
+            - lint
+      - plan:
+          name: tf-plan-env-test-3
+          environment: test
+          workspace_name: eu-west-3
+          requires:
+            - lint
+  master:
+    jobs:
+      - apply:
+          name: tf-apply-env-dev-1
+          environment: development
+          workspace_name: eu-west-1
+          filters: *master-filter
