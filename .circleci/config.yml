@@ -121,14 +121,8 @@ workflows:
       - lint
       - plan:
           name: tf-plan-env-test-1
-          environment: test
+          environment: development
           workspace_name: eu-west-1
-          requires:
-            - lint
-      - plan:
-          name: tf-plan-env-test-3
-          environment: test
-          workspace_name: eu-west-3
           requires:
             - lint
   master:

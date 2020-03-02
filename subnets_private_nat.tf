@@ -49,7 +49,7 @@ resource "aws_route" "private" {
 }
 
 resource "aws_route_table_association" "privates_single_nat" {
-  count = var.subnets.private_subnets && var.subnets.public_subnets && var.nat_hight_avaibility == false ? local.nat_count : 0
+  count = var.subnets.private_subnets && var.subnets.public_subnets && var.nat_hight_avaibility == false ? local.az_count : 0
 
   route_table_id = aws_route_table.private[0].id
   subnet_id      = aws_subnet.private[count.index].id
