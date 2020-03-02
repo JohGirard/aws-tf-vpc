@@ -51,7 +51,7 @@ resource "aws_security_group" "nat" {
   }
 
   dynamic "ingress" {
-    for_each = var.nat_hight_avaibility ? [] : [1]
+    for_each = var.nat_hight_avaibility ? [1] : []
     content {
       from_port   = 0
       to_port     = 0
