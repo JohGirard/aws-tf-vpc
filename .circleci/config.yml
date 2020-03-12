@@ -125,10 +125,21 @@ workflows:
           workspace_name: eu-west-1
           requires:
             - lint
+      - plan:
+          name: tf-plan-env-test-3
+          environment: development
+          workspace_name: eu-west-3
+          requires:
+            - lint
   master:
     jobs:
       - apply:
           name: tf-apply-env-dev-1
           environment: development
           workspace_name: eu-west-1
+          filters: *master-filter
+      - apply:
+          name: tf-apply-env-dev-3
+          environment: development
+          workspace_name: eu-west-3
           filters: *master-filter
