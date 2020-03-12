@@ -3,5 +3,5 @@ vpc = {
   assign_generated_ipv6_cidr_block = false
 }
 
-nat_gateway_enable   = true
+nat_gateway_enable   = false
 nat_hight_avaibility = false
