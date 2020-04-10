@@ -9,7 +9,7 @@ resource "aws_subnet" "database" {
   assign_ipv6_address_on_creation = var.vpc.assign_generated_ipv6_cidr_block
   map_public_ip_on_launch         = false
 
-  availability_zone = element(data.aws_availability_zones.available.names, count.index)
+  availability_zone = data.aws_availability_zones.available.names[count.index]
 
   cidr_block = cidrsubnet(var.vpc.cidr_block, local.az_count + 1, (local.az_count * 3 + count.index))
 
@@ -65,7 +65,7 @@ resource aws_network_acl_rule inbound_databases {
   egress         = false
   protocol       = "tcp"
   rule_action    = "allow"
-  cidr_block     = element(aws_subnet.private.*.cidr_block, count.index)
+  cidr_block     = aws_subnet.private[count.index].cidr_block
   from_port      = 1
   to_port        = 65535
 }
@@ -78,7 +78,7 @@ resource aws_network_acl_rule outbound_databases {
   egress         = true
   protocol       = "tcp"
   rule_action    = "allow"
-  cidr_block     = element(aws_subnet.private.*.cidr_block, count.index)
+  cidr_block     = aws_subnet.private[count.index].cidr_block
   from_port      = 1
   to_port        = 65535
 }
@@ -90,7 +90,7 @@ resource aws_network_acl_rule outbound_databases {
 resource aws_db_subnet_group rds {
   count = var.subnets.private_subnets ? 1 : 0
 
-  name        = "${var.environment}-database"
+  name        = "database"
   subnet_ids  = aws_subnet.database.*.id
   description = "Default RDS Subnet Groups"
 }
@@ -98,7 +98,7 @@ resource aws_db_subnet_group rds {
 resource aws_elasticache_subnet_group cache {
   count = var.subnets.private_subnets ? 1 : 0
 
-  name        = "${var.environment}-database"
+  name        = "database"
   subnet_ids  = aws_subnet.database.*.id
   description = "Default Elasticache Subnet Groups"
 }
@@ -106,7 +106,7 @@ resource aws_elasticache_subnet_group cache {
 resource aws_redshift_subnet_group redshit {
   count = var.subnets.private_subnets ? 1 : 0
 
-  name        = "${var.environment}-database"
+  name        = "database"
   subnet_ids  = aws_subnet.database.*.id
   description = "Default Redshift Subnet Groups"
   tags        = local.tags
