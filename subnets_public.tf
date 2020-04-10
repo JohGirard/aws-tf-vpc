@@ -31,7 +31,7 @@ resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
   tags = merge(
     {
-      "Name" : "${var.environment}-private"
+      "Name" : "${var.environment}-public"
     },
     local.tags
   )
