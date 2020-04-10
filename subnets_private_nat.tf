@@ -118,3 +118,31 @@ resource aws_network_acl_rule outbound_private_nat {
   from_port      = 1024
   to_port        = 65535
 }
+
+# FROM DATABASES
+
+resource aws_network_acl_rule inbound_database {
+  count = var.subnets.database_subnets ? length(aws_subnet.database) : 0
+
+  network_acl_id = aws_network_acl.private.0.id
+  rule_number    = 180 + count.index
+  egress         = false
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = element(aws_subnet.database.*.cidr_block, count.index)
+  from_port      = 1
+  to_port        = 65535
+}
+
+resource aws_network_acl_rule outbound_database {
+  count = var.subnets.database_subnets ? length(aws_subnet.database) : 0
+
+  network_acl_id = aws_network_acl.private.0.id
+  rule_number    = 180 + count.index
+  egress         = true
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = element(aws_subnet.database.*.cidr_block, count.index)
+  from_port      = 1
+  to_port        = 65535
+}
