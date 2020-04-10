@@ -39,6 +39,49 @@ resource "aws_route_table_association" "databases" {
   route_table_id = aws_route_table.database[0].id
   subnet_id      = aws_subnet.database[count.index].id
 }
+###########################
+# NACL
+###########################
+
+resource aws_network_acl database {
+  count = var.subnets.private_subnets ? 1 : 0
+
+  vpc_id     = aws_vpc.main.id
+  subnet_ids = aws_subnet.database.*.id
+
+  tags = merge(
+    {
+      "Name" : "${var.environment}-database"
+    },
+    local.tags
+  )
+}
+
+resource aws_network_acl_rule inbound_databases {
+  count = var.subnets.private_subnets ? length(aws_subnet.private) : 0
+
+  network_acl_id = aws_network_acl.database.0.id
+  rule_number    = 200 + count.index
+  egress         = false
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = element(aws_subnet.private.*.cidr_block, count.index)
+  from_port      = 1
+  to_port        = 65535
+}
+
+resource aws_network_acl_rule outbound_databases {
+  count = var.subnets.private_subnets ? length(aws_subnet.private) : 0
+
+  network_acl_id = aws_network_acl.database.0.id
+  rule_number    = 200 + count.index
+  egress         = true
+  protocol       = "tcp"
+  rule_action    = "allow"
+  cidr_block     = element(aws_subnet.private.*.cidr_block, count.index)
+  from_port      = 1
+  to_port        = 65535
+}
 
 ###########################
 # Database Subnets Group
