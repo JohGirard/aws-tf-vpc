@@ -80,10 +80,12 @@ resource aws_network_acl private {
   )
 }
 
+# FROM INTERNET
+
 resource aws_network_acl_rule inbound_http_private_nat {
   count = var.subnets.public_subnets ? length(aws_subnet.public) : 0
 
-  network_acl_id = aws_network_acl.public.0.id
+  network_acl_id = aws_network_acl.private.0.id
   rule_number    = 200 + count.index
   egress         = false
   protocol       = "tcp"
@@ -96,7 +98,7 @@ resource aws_network_acl_rule inbound_http_private_nat {
 resource aws_network_acl_rule inbound_https_private_nat {
   count = var.subnets.public_subnets ? length(aws_subnet.public) : 0
 
-  network_acl_id = aws_network_acl.public.0.id
+  network_acl_id = aws_network_acl.private.0.id
   rule_number    = 200 + count.index
   egress         = false
   protocol       = "tcp"
@@ -109,7 +111,7 @@ resource aws_network_acl_rule inbound_https_private_nat {
 resource aws_network_acl_rule outbound_private_nat {
   count = var.subnets.public_subnets ? length(aws_subnet.public) : 0
 
-  network_acl_id = aws_network_acl.public.0.id
+  network_acl_id = aws_network_acl.private.0.id
   rule_number    = 200 + count.index
   egress         = true
   protocol       = "tcp"
