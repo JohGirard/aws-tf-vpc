@@ -39,3 +39,32 @@ resource "aws_route_table_association" "databases" {
   route_table_id = aws_route_table.database[0].id
   subnet_id      = aws_subnet.database[count.index].id
 }
+
+###########################
+# Database Subnets Group
+###########################
+
+resource aws_db_subnet_group rds {
+  count = var.subnets.private_subnets ? 1 : 0
+
+  name        = "${var.environment}-database"
+  subnet_ids  = aws_subnet.database.*.id
+  description = "Default RDS Subnet Groups"
+}
+
+resource aws_elasticache_subnet_group cache {
+  count = var.subnets.private_subnets ? 1 : 0
+
+  name        = "${var.environment}-database"
+  subnet_ids  = aws_subnet.database.*.id
+  description = "Default Elasticache Subnet Groups"
+}
+
+resource aws_redshift_subnet_group redshit {
+  count = var.subnets.private_subnets ? 1 : 0
+
+  name        = "${var.environment}-database"
+  subnet_ids  = aws_subnet.database.*.id
+  description = "Default Redshift Subnet Groups"
+  tags        = local.tags
+}
