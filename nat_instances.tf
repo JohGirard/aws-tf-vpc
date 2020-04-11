@@ -40,6 +40,7 @@ resource "aws_security_group" "nat" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Allow only internet access from private nat subnet
   dynamic "ingress" {
     for_each = var.nat_hight_avaibility == false ? [1] : []
     content {
