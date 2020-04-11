@@ -17,7 +17,7 @@ resource "aws_subnet" "private" {
   tags = merge(
     {
       "Name" : "${var.environment}-private-${local.alphabet[count.index]}",
-      "SubnetType" : "Private"
+      "Tier" : "Private"
     },
     local.tags
   )

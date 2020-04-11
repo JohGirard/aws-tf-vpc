@@ -1,5 +1,11 @@
 version: 2.1
 
+dev-branch: &dev-branch
+  branches:
+    ignore:
+      - master
+      - /^[0-9]+(\.[0-9]+)*$/
+
 master-filter: &master-filter
   branches:
     only:

@@ -16,7 +16,7 @@ resource "aws_subnet" "database" {
   tags = merge(
     {
       "Name" : "${var.environment}-database-${local.alphabet[count.index]}",
-      "SubnetType" : "Database"
+      "Tier" : "Database"
     },
     local.tags
   )
