@@ -144,8 +144,3 @@ workflows:
           environment: development
           workspace_name: eu-west-1
           filters: *master-filter
-      - apply:
-          name: tf-apply-env-dev-3
-          environment: development
-          workspace_name: eu-west-3
-          filters: *master-filter
